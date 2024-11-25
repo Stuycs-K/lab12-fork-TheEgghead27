@@ -23,11 +23,13 @@ pid_t verified_fork() {
 }
 
 int main(void) {
+	const int n = 2;
 	srand( time(NULL) );
 	int seedOffset = rand();  // because I didn't feel like using raw PID
-	pid_t pids[2];
-	int slps[2];
-	for (int i = 0; i < 2; i++) {
+	pid_t pids[n];
+	int slps[n];
+	printf("%d about to create %d child processes\n", getpid(), n);
+	for (int i = 0; i < n; i++) {
 		pids[i] = verified_fork();
 		if (pids[i] == 0) {
 			child(seedOffset, slps+i);
