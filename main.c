@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 void child(int seedOffset, int * time) {
 	srand(seedOffset + getpid());
@@ -27,14 +28,26 @@ int main(void) {
 	srand( time(NULL) );
 	int seedOffset = rand();  // because I didn't feel like using raw PID
 	pid_t pids[n];
-	int slps[n];
-	printf("%d about to create %d child processes\n", getpid(), n);
+	pid_t parent = getpid();
+	int duration;
+	printf("%d about to create %d child processes\n", parent, n);
 	for (int i = 0; i < n; i++) {
 		pids[i] = verified_fork();
 		if (pids[i] == 0) {
-			child(seedOffset, slps+i);
-			return 0;
+			child(seedOffset, &duration);
+			return duration;
 		}
 	}
+	int buf;
+	pid_t child = wait(&buf);
+	if (child < 0) {
+		fprintf(stderr, "wait: %s\n", strerror(errno));
+		return errno;
+	}
+	if (!WIFEXITED(buf)) {
+		fprintf(stderr, "child did not exit normally!\n");
+		return 1;
+	}
+	printf("Main Process %d is done. Child %d slept for %dsec\n", parent, child, WEXITSTATUS(buf));
 	return 0;
 }
