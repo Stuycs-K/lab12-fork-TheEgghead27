@@ -12,6 +12,7 @@ void child(int seedOffset) {
 	printf("%d %dsec\n", getpid(), time);
 	sleep(time);
 	printf("%d finished after %dsec\n", getpid(), time);
+	printf("parent: %d\n", getppid());
 	exit(time);
 }
 
