@@ -6,12 +6,13 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-void child(int seedOffset, int * time) {
+void child(int seedOffset) {
 	srand(seedOffset + getpid());
-	*time = rand() % 5 + 1;
-	printf("%d %dsec\n", getpid(), *time);
-	sleep(*time);
-	printf("%d finished after %dsec\n", getpid(), *time);
+	int time = rand() % 5 + 1;
+	printf("%d %dsec\n", getpid(), time);
+	sleep(time);
+	printf("%d finished after %dsec\n", getpid(), time);
+	exit(time);
 }
 
 pid_t verified_fork() {
@@ -27,15 +28,13 @@ int main(void) {
 	const int n = 2;
 	srand( time(NULL) );
 	int seedOffset = rand();  // because I didn't feel like using raw PID
-	pid_t pids[n];
 	pid_t parent = getpid();
 	int duration;
 	printf("%d about to create %d child processes\n", parent, n);
 	for (int i = 0; i < n; i++) {
-		pids[i] = verified_fork();
-		if (pids[i] == 0) {
-			child(seedOffset, &duration);
-			return duration;
+		if (!verified_fork()) {
+			child(seedOffset);
+			return 255;  // should never happen
 		}
 	}
 	int buf;
